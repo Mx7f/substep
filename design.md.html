@@ -1,0 +1,41 @@
+**Audio Visual Music Sequencer**
+       Michael Mara
+
++ <https://cycling74.com/?project-tag=step-sequencer>
++ <http://algoart.com/tutorials/sequencers/introduction.htm>
++ <http://www.earslap.com/page/otomata.html>
++ <http://tonematrix.audiotool.com/>
++ <http://createdigitalmusic.com/2010/07/free-generative-midi-with-cellular-automata-built-in-air/>
++ <http://createdigitalmusic.com/2015/10/fugue-machine-is-how-bach-would-have-made-a-sequencer/>
++ <http://blog.loomer.co.uk/2009/02/step-sequencing-meets-cellular.html>
++ <http://portal.ku.edu.tr/~megunal/articles/cellular.pdf>
+
+
+I went through a few searches for step sequencers to learn what they are and what types of software already exists. In my travels I stumbled upon a few cellular automata  "generative step sequencers", which I though were basically the best things ever. The [Cellular Automidi Engine](http://createdigitalmusic.com/2010/07/free-generative-midi-with-cellular-automata-built-in-air/) works very much like the [Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life), and at every time step of the automaton, every newly "live" block plays a note based on its coordinate.
+
+[Otomata](http://www.earslap.com/page/otomata.html) is what I think of as a more interesting spin on the concept, having note heads move along a 9x9 grid, playing sounds based on position when it hits a wall, and the note heads turn right upon collision with each other. This approach lets very simple startup specifications lead to enormously complex and intricate results.
+
+I want to create a more beatiful and intricate version of Otomata. Although the concept is awesome and fun to play with and watch, the visuals look like something out of a early 00s flash advertisement.
+
+
+
++ Recreate Otomata's core motif, the playheads on a grid with sounds playing on wall hit, with cleaner visuals
++ Add in turning on playhead collision.
++ Add tempo control
++ Add scale selection
++ Add ability to pause
++ Add ability to save/load
++ Add smooth visual transitions instead of the jerky stepping done in Otomata.
++ Experiment with changing the notes to play on piece collision instead of when hitting the walls.
++ Experiment with a torus topology.
++ Experiment with a hex grid.
++ Experiment with a [hex grid tiled torus](http://mathematica.stackexchange.com/questions/39879/create-a-torus-with-a-hexagonal-mesh-for-3d-printing).
++ Make playheads be sparks on the edges of the grid instead of in the center. Make it visually like this: ![Glowy Hexes](glowyhex.png)
++ If either torus configuration works well and feels nice, make a mode where the display wraps and distorts itself into a 3D torus. ![Hex Grid Tiled Torus](torushex.png)
+
+
+
+If possible, I would like to figure out if there is any reasonable way of adding in multiple playheads like [this article](http://createdigitalmusic.com/2015/10/fugue-machine-is-how-bach-would-have-made-a-sequencer/).
+
+
+<style class="fallback">body{white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="http://casual-effects.com/markdeep/latest/markdeep.min.js"></script>
