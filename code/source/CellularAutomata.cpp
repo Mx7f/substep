@@ -1,6 +1,6 @@
 #include "CellularAutomata.h"
 #include "util.h"
-#include "Sound.h"
+
 
 static Vector2int16 vecFromDir(Direction d) {
   switch(d) {
@@ -33,7 +33,7 @@ static bool isVert(Direction d) {
 }
 
 
-void CellularAutomata::onSimulation(RealTime rdt, SimTime sdt) {
+void CellularAutomata::onSimulation(double currentSampleCount, double sampleDelta) {
   int oldBeatNum = beatNum();
   m_currentTime += sdt;
   int newBeatNum = beatNum();

@@ -1,7 +1,7 @@
 #ifndef CellularAutomata_h
 #define CellularAutomata_h
 #include <G3D/G3DAll.h>
-
+#include "Sound.h"
 G3D_DECLARE_ENUM_CLASS(Direction, UP, DOWN, LEFT, RIGHT);
 
 
@@ -40,7 +40,7 @@ class CellularAutomata {
   int    m_height;
   Array<PlayHead> m_playhead; 
   Array<shared_ptr<AudioSample>> m_soundBank;
-
+  Queue<shared_ptr<Sound>> m_currentlyPlayingSounds;
   
   Vector2 normalizedCoord(const Vector2& position);
 

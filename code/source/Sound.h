@@ -28,3 +28,10 @@ struct Sound {
   }
 };
 
+class Synthesizer {
+ public:
+  static unique_ptr<Synthesizer> global;
+ private:
+  Array<Sound> m_sounds;
+  
+};
