@@ -4,14 +4,35 @@
     <ClCompile Include="source\App.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Synthesizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CellularAutomata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\RtAudio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\App.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resources.rc" />
+    <ClInclude Include="source\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CellularAutomata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\RtAudio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\AudioSample.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Synthesizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="mainpage.dox" />
@@ -30,13 +51,13 @@
       <UniqueIdentifier>{7808eb57-c0e1-4947-8248-1127238ea26e}</UniqueIdentifier>
       <Extensions>*.h</Extensions>
     </Filter>
-    <Filter Include="Shader Files">
-      <UniqueIdentifier>{562523b7-dfa2-4cfa-acae-1ad7ade219dd}</UniqueIdentifier>
-      <Extensions>*.vrt;*.geo;*.pix</Extensions>
-    </Filter>
     <Filter Include="Scene Files">
       <UniqueIdentifier>{f7819c7b-69f2-4778-bec8-4dbee2bfa711}</UniqueIdentifier>
       <Extensions>*.any</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Shader Files">
+      <UniqueIdentifier>{562523b7-dfa2-4cfa-acae-1ad7ade219dd}</UniqueIdentifier>
+      <Extensions>*.vrt;*.geo;*.pix</Extensions>
     </Filter>
   </ItemGroup>
 </Project>

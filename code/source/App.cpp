@@ -1,6 +1,6 @@
 /** \file App.cpp */
 #include "App.h"
-
+#include "Synthesizer.h"
 // Tells C++ to invoke command-line main() function even on OS X and Win32.
 G3D_START_AT_MAIN();
 
@@ -50,13 +50,15 @@ App::App(const GApp::Settings& settings) : GApp(settings) {
 
 int audioCallback( void * outputBuffer, void * inputBuffer, unsigned int numFrames,
             double streamTime, RtAudioStreamStatus status, void * data ) {
-  float * output = (float *)outputBuffer;
-  float * input  = (float *)inputBuffer;
-  size_t numBytes = numFrames * sizeof(float);
-  memset(output, 0, numBytes);
-  // Copy input buffer, handle race condition by not caring about it.
-  memcpy(g_currentAudioBuffer.getCArray(), input, numBytes);
-  return 0;
+    size_t numBytes = numFrames * sizeof(Sample);
+    Array<Sample> output;
+    output.resize(numFrames);
+    for (Sample& s : output) {
+        s = 0.0;
+    }
+    Synthesizer::global->synthesize(output);
+    memcpy(outputBuffer, output.getCArray(), numBytes);
+    return 0;
 }
 
 
@@ -110,7 +112,7 @@ void App::initializeAudio() {
 void App::loadGrid() {
     Any grid;
     grid.load(System::findDataFile("grid.Grid.Any"));
-    m_automata.init(grid["width"], grid["height"], grid["startHeads"]);
+    m_automata.init(grid["width"], grid["height"], grid["startHeads"], 150, m_audioSettings.sampleRate);
     m_gridColor = grid["color"];
 }
 
@@ -119,7 +121,7 @@ void App::loadGrid() {
 // automatically caught.
 void App::onInit() {
     GApp::onInit();
-    setFrameDuration(1.0f / 30.0f);
+    setFrameDuration(1.0f / 60.0f);
 
     initializeAudio();
     
@@ -146,15 +148,16 @@ void App::onInit() {
 void App::makeGUI() {
     // Initialize the developer HUD (using the existing scene)
     createDeveloperHUD();
-    debugWindow->setVisible(false);
+    debugWindow->setVisible(true);
     developerWindow->videoRecordDialog->setVisible(false);
     developerWindow->cameraControlWindow->setVisible(false);
     developerWindow->sceneEditorWindow->setVisible(false);
     developerWindow->setVisible(false);
     showRenderingStats = false;
-
+    
     GuiPane* infoPane = debugPane->addPane("Info", GuiTheme::ORNATE_PANE_STYLE);
-
+    infoPane->addButton("Pause", [this]() { m_automata.setPaused(!m_automata.paused()); });
+    infoPane->addNumberBox("BPM", &m_automata.m_bpm, "", GuiTheme::LINEAR_SLIDER, 30, 300);
     // Example of how to add debugging controls
     infoPane->pack();
 
@@ -221,7 +224,7 @@ void App::onNetwork() {
 void App::onSimulation(RealTime rdt, SimTime sdt, SimTime idt) {
     GApp::onSimulation(rdt, sdt, idt);
 
-    m_automata.onSimulation(rdt, sdt);
+    m_automata.onSimulation(Synthesizer::global->currentSampleCount(), Synthesizer::global->tick());
     
     // Example GUI dynamic layout code.  Resize the debugWindow to fill
     // the screen horizontally.
