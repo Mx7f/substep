@@ -121,8 +121,10 @@ void App::loadGrid() {
 // automatically caught.
 void App::onInit() {
     GApp::onInit();
+    m_rainbowMode = true;
     setFrameDuration(1.0f / 60.0f);
-
+    m_showHelp = true;
+    m_guiFont = GFont::fromFile(System::findDataFile("console.fnt"));
     initializeAudio();
     
     loadGrid();
@@ -136,11 +138,7 @@ void App::onInit() {
     // developerWindow->videoRecordDialog->setScreenShotFormat("PNG");
     // developerWindow->videoRecordDialog->setCaptureGui(false);
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
-    loadScene(
-              //"G3D Sponza"
-        "Test Scene" // Load something simple
-        //developerWindow->sceneEditorWindow->selectedSceneName()  // Load the first scene encountered 
-        );
+    loadScene("Test Scene");
 
 }
 
@@ -148,7 +146,7 @@ void App::onInit() {
 void App::makeGUI() {
     // Initialize the developer HUD (using the existing scene)
     createDeveloperHUD();
-    debugWindow->setVisible(true);
+    debugWindow->setVisible(false);
     developerWindow->videoRecordDialog->setVisible(false);
     developerWindow->cameraControlWindow->setVisible(false);
     developerWindow->sceneEditorWindow->setVisible(false);
@@ -156,8 +154,11 @@ void App::makeGUI() {
     showRenderingStats = false;
     
     GuiPane* infoPane = debugPane->addPane("Info", GuiTheme::ORNATE_PANE_STYLE);
-    infoPane->addButton("Pause", [this]() { m_automata.setPaused(!m_automata.paused()); });
-    infoPane->addNumberBox("BPM", &m_automata.m_bpm, "", GuiTheme::LINEAR_SLIDER, 30, 300);
+    infoPane->beginRow(); {
+        infoPane->addButton("Pause", [this]() { m_automata.setPaused(!m_automata.paused()); });
+        infoPane->addNumberBox("BPM", &m_automata.m_bpm, "", GuiTheme::LINEAR_SLIDER, 30, 300);
+        infoPane->addEnumClassRadioButtons("Display Mode", &m_automata.m_displayMode);
+    } infoPane->endRow();
     // Example of how to add debugging controls
     infoPane->pack();
 
@@ -171,6 +172,28 @@ void App::makeGUI() {
     debugWindow->setRect(Rect2D::xywh(0, 0, (float)window()->width(), debugWindow->rect().height()));
 }
 
+void App::renderGUI(RenderDevice* rd) {
+
+    m_guiFont->draw3DBillboard(rd, "Click to Add/Remove Playheads", Point3(0.0, 2.45, 0), 0.1f,
+        m_gridColor, Color4::clear());
+    m_guiFont->draw3DBillboard(rd, "Space to Play/Pause", Point3(0.0, 2.25, 0), 0.1f,
+        m_gridColor, Color4::clear());
+    m_guiFont->draw3DBillboard(rd, format("'H' to Toggle Help", m_automata.m_bpm), Point3(0.0, 2.125, 0), 0.1f,
+        m_gridColor, Color4::clear());
+
+
+    m_guiFont->draw3DBillboard(rd, format("%d BPM", m_automata.m_bpm), Point3(2.0, -2.125, 0), 0.1f, 
+        m_gridColor, Color4::clear(), GFont::XALIGN_RIGHT);
+    m_guiFont->draw3DBillboard(rd, format("<- -> ", m_automata.m_bpm), Point3(2.0, -2.25, 0), 0.1f,
+        m_gridColor, Color4::clear(), GFont::XALIGN_RIGHT);
+    
+    
+    m_guiFont->draw3DBillboard(rd, "'t' to Toggle 2D/3D Mode", Point3(-2.0, -2.125, 0), 0.1f,
+        m_gridColor, Color4::clear(), GFont::XALIGN_LEFT);
+    m_guiFont->draw3DBillboard(rd, "'r' to Toggle Rainbow Mode", Point3(-2.0, -2.25, 0), 0.1f,
+        m_gridColor, Color4::clear(), GFont::XALIGN_LEFT);
+
+}
 
 void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurfaces) {
     // This implementation is equivalent to the default GApp's. It is repeated here to make it
@@ -185,11 +208,15 @@ void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& allSurface
     rd->pushState(m_framebuffer); {
         // Call to make the App show the output of debugDraw(...)
         rd->setProjectionAndCameraMatrix(activeCamera()->projection(), activeCamera()->frame());
-	//	rd->push2D(); {
-	  rd->setColorClearValue(Color3::black());
-	  rd->clear();
-	  m_automata.draw(rd, Rect2D::xywh(-2,-2, 4, 4), m_gridColor);
-	  //	} rd->pop2D();
+	
+	    rd->setColorClearValue(Color3::black());
+	    rd->clear();
+        const Ray& mouseRay = scene()->eyeRay(activeCamera(), userInput->mouseXY() + Vector2(0.5f, 0.5f), rd->viewport(), Vector2int16(0, 0));
+	    m_automata.draw(rd, mouseRay, m_gridColor);
+        if (m_showHelp) {
+            renderGUI(rd);
+        }
+        
 
     } rd->popState();
 
@@ -224,6 +251,13 @@ void App::onNetwork() {
 void App::onSimulation(RealTime rdt, SimTime sdt, SimTime idt) {
     GApp::onSimulation(rdt, sdt, idt);
 
+    float t = Synthesizer::global->currentSampleCount() * 0.0000001f;
+
+    if (m_rainbowMode) {
+        float newHue = Color3::toHSV(m_gridColor).x + sdt * 0.1f;
+        m_gridColor = Color3::fromHSV(Vector3(newHue - floor(newHue), 1.0f, 1.0f));
+    }
+
     m_automata.onSimulation(Synthesizer::global->currentSampleCount(), Synthesizer::global->tick());
     
     // Example GUI dynamic layout code.  Resize the debugWindow to fill
@@ -234,8 +268,29 @@ void App::onSimulation(RealTime rdt, SimTime sdt, SimTime idt) {
 
 bool App::onEvent(const GEvent& event) {
     // Handle super-class events
-  if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey::F5)) { loadGrid(); }  
-  if (GApp::onEvent(event)) { return true; }
+    if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey::F5)) { loadGrid(); }  
+
+    if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey::SPACE)) { 
+        m_automata.setPaused(!m_automata.paused());
+    }
+    if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey::LEFT)) {
+        m_automata.m_bpm = max(m_automata.m_bpm-1, 1);
+    }
+    if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey::RIGHT)) {
+        m_automata.m_bpm = min(m_automata.m_bpm+1, 10000);
+    }
+    if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey('h'))) {
+        m_showHelp = !m_showHelp;
+    }
+    if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey('t'))) {
+        m_automata.m_displayMode = CellularAutomata::DisplayMode(1 - m_automata.m_displayMode);
+    }
+
+    if ((event.type == GEventType::KEY_DOWN) && (event.key.keysym.sym == GKey('r'))) {
+        m_rainbowMode = !m_rainbowMode;
+    }
+    if (GApp::onEvent(event)) { return true; }
+
 
     // If you need to track individual UI events, manage them here.
     // Return true if you want to prevent other parts of the system
@@ -251,6 +306,11 @@ bool App::onEvent(const GEvent& event) {
 
 void App::onUserInput(UserInput* ui) {
     GApp::onUserInput(ui);
+    bool pressed = ui->keyPressed(GKey::LEFT_MOUSE);
+    bool held    = ui->keyDown(GKey::LEFT_MOUSE);
+    const Ray& mouseRay = scene()->eyeRay(activeCamera(), userInput->mouseXY() + Vector2(0.5f, 0.5f), RenderDevice::current->viewport(), Vector2int16(0, 0));
+    m_automata.handleMouse(pressed, held, mouseRay, userInput->mouseXY());
+    
     (void)ui;
     // Add key handling here based on the keys currently held or
     // ones that changed in the last frame.

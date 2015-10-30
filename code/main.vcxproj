@@ -102,6 +102,7 @@
     <ClCompile Include="source\Synthesizer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="data-files\grid.Grid.Any" />
     <None Include="data-files\test.Scene.Any" />
     <None Include="Doxyfile" />
     <None Include="journal\journal.dox" />

@@ -6,68 +6,42 @@
 
 <i>Newest entries are at the top</i>
 
-\section notes Formatting Notes
-Put the newest entry at the top of this file, like a blog. 
-Begin the title of each section with a date in ISO format (YYYY-MM-DD).
-Press F4 and F6 to embed screenshots and video in this journal.
+\section S20151029 2015-10-29: Complete
 
-Doxygen supports [markdown syntax](http://www.stack.nl/~dimitri/doxygen/manual/markdown.html),
-[many HTML commands](http://www.stack.nl/~dimitri/doxygen/manual/htmlcmds.html),
-and LaTeX-like [Doxygen commands](http://www.stack.nl/~dimitri/doxygen/manual/commands.html)
-for formatting in this file. The most frequently used of these are:
 
-\verbatim
-[Link syntax](http://g3d.codeplex.com)
+\video{substepDemo.mp4, Video Demo}
 
-Table    | Syntax
--------: | ---------
-  100 ms |  Hello
-  5 ms   |  World
+\thumbnail{2015-10-29_006_substep_g3d_r367__H_for_helpful_instructions_.jpg, H for helpful instructions!}
 
-- List
-- Syntax
-  + Subbullet
 
-~~~~~~~~~~~~~
-// Code syntax in C++
-for (int i = 0; i < 10; ++i) {
-   printf("%d\n", i);
-}
-~~~~~~~~~~~~~
-\endverbatim
 
-which produce:
+\thumbnail{2015-10-29_005_substep_g3d_r367__More_fun_with_free-flight_mode.jpg, More fun with free-flight mode}
 
-[Link syntax](http://g3d.codeplex.com)
 
-Table  | Syntax
------: | ---------
-  1 ms |  Hello
-500 ms |  World
 
-- List
-- Syntax
-  + Subbullet
+\thumbnail{2015-10-29_004_substep_g3d_r367__Toggling_between_Square_and_Torus_Modes.jpg, Toggling between Square and Torus Modes}
 
-~~~~~~~~~~~~~
-// Code syntax in C++
-for (int i = 0; i < 10; ++i) {
-   printf("%d\n", i);
-}
-~~~~~~~~~~~~~
+It's fun and looks cool. I find this doing this as my creation plays to be the most satisfying thing to do with SubStep.
 
-You can manually embed images in this file using the custom G3D Doxygen commands:
 
-\verbatim
-\thumbnail{imagefilename}
-\thumbnail{imagefilename, caption}
-\video{videofilename, caption}
-\endverbatim
+\thumbnail{2015-10-29_003_substep_g3d_r367__Select_Existing_Playheads.jpg, Select Existing Playheads}
 
-The `imagefilename` does not need to include a path.  Put the images
-in the `journal/` or `doc-files/` directories.  They will
-automatically be copied to the `build/doc` directory when you run Doxygen.
+Select existing playhead by hovering over them. Click to delete.
 
-If you have Latex installed, then you can display inline (\f$ \int_{-\infty}^{\infty} e^{-x^2} dx \f$) and display math equations, for example: \f[ \int_{-\infty}^{\infty} e^{-x^2} dx \f]
+
+\thumbnail{2015-10-29_002_substep_g3d_r367__Pause_Mode.jpg, Pause Mode}
+
+When the sequencer is paused, it is easy to drop in new playheads, just click on the grid! The app shows you the direction you have selected as you hover, move your mouse in the direction you want the playhead to start! 
+
+
+\thumbnail{2015-10-29_001_substep_g3d_r367__Torus_Mode.jpg, Torus Mode}
+
+Press t to toggle between Square and Torus mode. Square is easier to use, but Torus looks cooler!
+
+
+
+\thumbnail{2015-10-29_000_substep_g3d_r367__Freeflight_mode.jpg, Freeflight mode}
+
+F2 sends you into free-flight mode, where you can steer the camera however you want. Go ahead and cruise through the torus.
 
 */

@@ -14,7 +14,7 @@ struct AudioSample {
         s->sampleRate = sampleRate;
         s->buffer.resize(sampleCountDuration);
         int fadeOutBeginSample = sampleCountDuration * fadeOutProportion;
-        float volume = 0.2f;
+        float volume = 0.1f; // Allow ten simulataneous samples without clipping
         for (int i = 0; i < sampleCountDuration; ++i) {
             float sinValue = sin(2.0f * pif() * float(i) * float(frequency) / sampleRate);
             float fade = clamp(1.0f - (float(i - fadeOutBeginSample) / (sampleCountDuration - fadeOutBeginSample)), 0.0f, 1.0f);

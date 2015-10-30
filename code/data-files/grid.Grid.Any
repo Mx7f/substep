@@ -1,6 +1,6 @@
 {
-	color = Color3(1.0f, 0.0f, 1.0f);
+	color = Color3(0.0f, 1.0f, 1.0f);
 	width = 9;
 	height = 9;
-	startHeads = 10;
+	startHeads = 0;
 }

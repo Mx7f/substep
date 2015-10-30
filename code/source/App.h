@@ -33,9 +33,12 @@ protected:
           rtAudioFormat(RTAUDIO_FLOAT32) {}
     } m_audioSettings;
 
-  
+    shared_ptr<GFont> m_guiFont;
     CellularAutomata m_automata;
     Color3 m_gridColor;
+
+    bool m_showHelp;
+    bool m_rainbowMode;
 
     /** Called from onInit */
     void makeGUI();
@@ -59,6 +62,8 @@ public:
 
     virtual void onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& surface3D) override;
     virtual void onGraphics2D(RenderDevice* rd, Array<shared_ptr<Surface2D> >& surface2D) override;
+
+    void renderGUI(RenderDevice* rd);
 
     virtual bool onEvent(const GEvent& e) override;
     virtual void onUserInput(UserInput* ui) override;

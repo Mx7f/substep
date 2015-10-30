@@ -6,7 +6,7 @@
         
 
         camera = Camera {             
-	  frame = CFrame::fromXYZYPRDegrees(  0.0f,   0.0f, 4.5f,  0.0f,  0.0f,   0.0f); 
+	  frame = CFrame::fromXYZYPRDegrees(  0.0f,   0.1f, 4.7f,  0.0f,  0.0f,   0.0f); 
 	     filmSettings = FilmSettings { 
                 antialiasingEnabled = false; 
                 

@@ -1,6 +1,9 @@
 #include "CellularAutomata.h"
 #include "util.h"
 
+static bool intersects(const Ray& mouseRay, const Vector3& center, float radius) {
+    return mouseRay.intersectionTime(Sphere(center, radius)) < 10000.0f;
+}
 
 static Vector2int16 vecFromDir(Direction d) {
     switch(d) {
@@ -38,13 +41,19 @@ static bool isVert(Direction d) {
     return d == Direction::UP || d == Direction::DOWN;
 }
 
+static float slew(float value, float goal, float delta, float alpha) {
+    return (goal - value)*alpha*delta + value;
+}
 
 void CellularAutomata::onSimulation(double currentSampleCount, double sampleDelta) {
+    SimTime deltaTime = float(sampleDelta) / m_sampleRate;
+    m_displayInterpolationFactor = slew(m_displayInterpolationFactor, m_displayMode, deltaTime, 0.8f);
     if (m_paused) {
+        m_currentTime = floor(m_currentTime / stepTime())*stepTime();
         return;
     }
     int oldBeatNum = beatNum();
-    m_currentTime += float(sampleDelta) / m_sampleRate;
+    m_currentTime += deltaTime;
     int newBeatNum = beatNum();
     if (newBeatNum != oldBeatNum) {
         step();
@@ -125,7 +134,7 @@ Vector3 CellularAutomata::normCoordToTorus(const Vector2& norm) {
 
 
 Vector3 CellularAutomata::normCoordTo3DPoint(const Vector2& norm) {
-    return  lerp(normCoordToPlane(norm), normCoordToTorus(norm), sin(m_currentTime*0.2)*0.5f+0.5f);
+    return lerp(normCoordToPlane(norm), normCoordToTorus(norm), m_displayInterpolationFactor);
 }
 
 Vector3 CellularAutomata::normCoordTo3DPoint(float x, float y) {
@@ -167,6 +176,67 @@ void CellularAutomata::init(int width, int height, int numPlayHeads, int bpm, in
   
 }
 
+void CellularAutomata::handleMouse(bool isPressed, bool isDown, const Ray & mouseRay, const Vector2 & mousePos) {
+    m_transientPlayhead.position = Vector2int16(-5, -5);
+    if (m_paused) {
+        Point2int16 selectedPosition(-1,-1);
+        for (int x = 0; x < m_width; ++x) {
+            for (int y = 0; y < m_height; ++y) {
+                Vector2 normalizedCoord = Vector2(x,y) * 
+                    Vector2(1.0f / (m_width - 1.0f), 1.0f / (m_height - 1.0f));
+                     
+                const Point3& p = normCoordTo3DPoint(normalizedCoord);
+                if (intersects(mouseRay, p, collisionRadius())) {
+                    selectedPosition = Vector2int16(x, y);
+                }
+            }
+        }
+        
+        if (selectedPosition.x >= 0) {
+ 
+            m_transientPlayhead.position  = selectedPosition;
+            m_transientPlayhead.direction = Direction::DOWN;
+
+            // Super hackish way to select the direction to point in based on mouse position 
+            // from the center (should work on in either mode, but only tested on 2D)
+            // This is the first thing due for a cleanup
+            float minDistance = 10.0f; // Basically infinity...
+            Vector2 normalizedCoord = Vector2(selectedPosition) *
+                Vector2(1.0f / (m_width - 1.0f), 1.0f / (m_height - 1.0f)); 
+            const Point3& center = normCoordTo3DPoint(normalizedCoord);
+            float t = mouseRay.intersectionTime(Sphere(center, collisionRadius()));
+            Point3 intersectionPoint = mouseRay.origin() + mouseRay.direction() * t;
+            for (int i = 0; i < 4; ++i) {
+                Vector2 npos = normalizedCoord + Vector2(vecFromDir(Direction(i)))*0.001f;
+                const Point3& p = normCoordTo3DPoint(npos);
+                if ((intersectionPoint - p).length() < minDistance) {
+                    minDistance = (intersectionPoint - p).length();
+                    m_transientPlayhead.direction = Direction(i);
+                }
+            }
+
+            if (isPressed) {
+                bool removed = false;
+                for (int i = m_playhead.size() - 1; i >= 0; --i) {
+                    if (selectedPosition == m_playhead[i].position) {
+                        m_playhead.remove(i);
+                        removed = true;
+                        break;
+                    }
+                }
+                
+                if (!removed) {
+                    m_playhead.append(m_transientPlayhead);
+                }
+                
+            }
+            
+        } 
+        
+    }
+
+}
+
 void CellularAutomata::drawSegmentedLine(RenderDevice* rd, const Color3& color, 
         const Vector2& start, const Vector2& end, int numSegments) {
 
@@ -181,11 +251,7 @@ void CellularAutomata::drawSegmentedLine(RenderDevice* rd, const Color3& color,
 
 }
 
-void CellularAutomata::draw(RenderDevice* rd, const Rect2D& rect, const Color3& color) {
-    float x0 = rect.x0();
-    float x1 = rect.x1();
-    float y0 = rect.y0();
-    float y1 = rect.y1();
+void CellularAutomata::draw(RenderDevice* rd, const Ray& mouseRay, const Color3& color) {
 
     int numSegments = 100;
 
@@ -217,14 +283,10 @@ void CellularAutomata::draw(RenderDevice* rd, const Rect2D& rect, const Color3& 
 
         Vector2 normalizedCoord = Vector2(pos) * Vector2(1.0f/(m_width - 1.0f), 1.0f/(m_height - 1.0f));
 
+        Vector3 center = normCoordTo3DPoint(normalizedCoord);
 
-
-        const float x = lerp(x0, x1, normalizedCoord.x);
-        const float y = lerp(y0, y1, normalizedCoord.y);
-
-        const Vector2 c = Vector2(x,y);
-
-        Draw::rect2D(Rect2D::xywh(Vector2(c)-Vector2(5,5), Vector2(10,10)), rd, color * 1.5);
+        Vector3 radius(0.01f, 0.01f, 0.01f);
+        Draw::box(AABox(center - radius, center + radius), rd, color*3.5f, Color4::clear());
     }
   
   
@@ -233,6 +295,7 @@ void CellularAutomata::draw(RenderDevice* rd, const Rect2D& rect, const Color3& 
     /*  debugPrintf("Step Alpha %f\n", sAlpha);
     debugPrintf("Time %f\n", m_currentTime);
     debugPrintf("Beat %d : %f\n", beatNum());*/
+    bool showTransientPlayhead = m_paused;
     for (auto head : m_playhead) {
 
         const Vector2int16 pos = head.position;
@@ -241,10 +304,26 @@ void CellularAutomata::draw(RenderDevice* rd, const Rect2D& rect, const Color3& 
 
         Vector2 normalizedCoord = unnormalizedCoord * Vector2(1.0f/(m_width - 1.0f), 1.0f/(m_height - 1.0f));
 
-
         Vector3 center = normCoordTo3DPoint(normalizedCoord);
-        Vector3 radius(0.01f, 0.01f, 0.01f);
-        Draw::box(AABox(center - radius, center + radius), rd, color*3.5f, Color4::clear());
+
+        if (m_paused) { 
+            float colorMultiplier = 1.0f;
+            if (pos == m_transientPlayhead.position) {
+                showTransientPlayhead = false;
+                colorMultiplier = 1.5f;
+            }
+            Draw::arrow(center, (normCoordTo3DPoint(normalizedCoord + Vector2(vecFromDir(head.direction))) - center)*0.02f, rd, color*colorMultiplier, 0.5f);
+        } else {
+            float maxDimension = max(m_width - 1.0f, m_height - 1.0f);
+            float r = 0.0007f*maxDimension;
+            Vector3 radius(r, r, r);
+            Draw::box(AABox(center - radius, center + radius), rd, color*3.5f, Color4::clear());
+        }
+    }
+    if (showTransientPlayhead && m_transientPlayhead.position.x >= 0) {
+        Point2 normalizedCoord = Point2(m_transientPlayhead.position) * Vector2(1.0f / (m_width - 1.0f), 1.0f / (m_height - 1.0f));
+        const Point3& center = normCoordTo3DPoint(normalizedCoord);
+        Draw::arrow(center, (normCoordTo3DPoint(normalizedCoord + Vector2(vecFromDir(m_transientPlayhead.direction))) - center)*0.02f, rd, Color4(color, 0.5f), 0.5f);
     }
 
     m_wallCollisions.fastClear();

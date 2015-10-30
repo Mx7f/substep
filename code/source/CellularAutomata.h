@@ -15,6 +15,10 @@ struct PlayHead {
 
 
 class CellularAutomata {
+public:
+    G3D_DECLARE_ENUM_CLASS(DisplayMode, SQUARE, TORUS);
+protected:
+
     struct HeadHeadCollision {
         int i0;
         int i1;
@@ -41,6 +45,8 @@ class CellularAutomata {
     int    m_height;
 
     bool m_paused;
+
+
 
     Array<PlayHead> m_playhead; 
     Array<shared_ptr<AudioSample>> m_soundBank;
@@ -70,11 +76,25 @@ class CellularAutomata {
     }
 
     void step();
+    float collisionRadius() const {
+        return 1.5f / float(max(m_width, m_height));
+    }
+    
+    float m_displayInterpolationFactor;
+    
+    G3D_DECLARE_ENUM_CLASS(InputMode, DEFAULT, PLACING);
+    InputMode   m_inputMode;
+    PlayHead    m_transientPlayhead;
 public:
+    
+
+    // Public just so GUI access is easier. In a larger program I would  probably provide better encapsulation
+    DisplayMode m_displayMode;
     int    m_bpm;
-    void draw(RenderDevice* rd, const Rect2D& rect, const Color3& color);
+    void draw(RenderDevice* rd, const Ray& mouseRay, const Color3& color);
     void onSimulation(double currentSampleCount, double sampleDelta);
     void init(int width, int height, int numPlayHeads = 0, int bpm = 150, int sampleRate = 48000);
+    void handleMouse(bool isPressed, bool isDown, const Ray& mouseRay, const Vector2& mousePos);
     bool paused() const {
         return m_paused;
     }
